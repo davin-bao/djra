@@ -3,7 +3,7 @@ FROM alpine:latest
 MAINTAINER Davin Bao <davin.bao@gmail.com>
 
 RUN set -x \
-    && apk add --update bash
+    && apk add --update bash \
     && cp /bin/bash /
 
 COPY jira-6.3.6 /usr/local/jira
