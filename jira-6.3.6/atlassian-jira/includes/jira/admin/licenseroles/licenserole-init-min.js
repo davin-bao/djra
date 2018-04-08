@@ -1,0 +1,1 @@
+require(["jquery","jira/admin/licenseroles"],(function($,LicenseRoles){$(function(){new LicenseRoles.RoleEditor({el:"#license-roles"})})}));
