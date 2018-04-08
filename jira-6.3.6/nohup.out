@@ -1,0 +1,32 @@
+
+To run JIRA in the foreground, start the server with start-jira.sh -fg
+executing as current user
+                .....
+          .... .NMMMD.  ...
+        .8MMM.  $MMN,..~MMMO.
+        .?MMM.         .MMM?.
+
+     OMMMMZ.           .,NMMMN~
+     .IMMMMMM. .NMMMN. .MMMMMN,
+       ,MMMMMM$..3MD..ZMMMMMM.
+        =NMMMMMM,. .,MMMMMMD.
+         .MMMMMMMM8MMMMMMM,
+           .ONMMMMMMMMMMZ.
+             ,NMMMMMMM8.
+            .:,.$MMMMMMM
+          .IMMMM..NMMMMMD.
+         .8MMMMM:  :NMMMMN.
+         .MMMMMM.   .MMMMM~.
+         .MMMMMN    .MMMMM?.
+
+      Atlassian JIRA
+      Version : 6.3.6
+                  
+Detecting JVM PermGen support...
+PermGen switch is supported. Setting to 384m
+
+If you encounter issues starting or stopping JIRA, please see the Troubleshooting guide at http://confluence.atlassian.com/display/JIRA/Installation+Troubleshooting+Guide
+
+
+Server startup logs are located in /xmisp/server/jira/jira-6.3.6/logs/catalina.out
+Tomcat started.

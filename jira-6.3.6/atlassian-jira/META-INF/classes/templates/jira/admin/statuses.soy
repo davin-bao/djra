@@ -1,0 +1,324 @@
+{namespace JIRA.Templates.Statuses}
+
+/**
+ * Active status.
+ */
+{template .activeStatus private="true"}
+<strong class="status-active">{getText('admin.common.words.active')}</strong>
+{/template}
+
+/**
+ * Inactive status
+ */
+{template .inactiveStatus}
+<strong class="status-inactive">{getText('admin.common.words.inactive')}</strong>
+{/template}
+
+/**
+ * @param statuses {List<Status>} collection of status objects to render.
+ * @param isTranslatable {Boolean} whether a user can translate status names and descriptions or not.
+ * @param isIconUrlFieldVisible {Boolean} whether iconUrl field should be visible or not.
+ * @param? statusCategoryHelpData {HelpUtil.HelpPath} the data used for rendering help link.
+ */
+{template .success}
+{let $activeStatus}{call .activeStatus /}{/let}
+{let $inactiveStatus}{call .inactiveStatus /}{/let}
+<html>
+<head>
+    <meta name="admin.active.section" content="admin_issues_menu/issue_attributes"/>
+    <meta name="admin.active.tab" content="statuses"/>
+    <title>{getText('admin.issuesettings.statuses.view.statuses')}</title>
+</head>
+<body>
+    {call aui.page.pageHeader}
+        {param content}
+            {call aui.page.pageHeaderMain}
+                {param content}
+                    <h2>{getText('admin.issuesettings.statuses.view.statuses')}</h2>
+                {/param}
+            {/call}
+        {/param}
+    {/call}
+
+    <p>{getText('admin.issuesettings.statuses.the.table.below')}</p>
+    <p>{getText('admin.issuesettings.statuses.all.statuses.have.one.of.two.modes')}</p>
+    <ul>
+        <li>{getText('admin.issuesettings.statuses.active', $activeStatus)|noAutoescape}</li>
+        <li>{getText('admin.issuesettings.statuses.inactive', $inactiveStatus)|noAutoescape}</li>
+    </ul>
+    <p>{getText('admin.issuesettings.statuses.to.delete.a.status')}</p>
+
+    {if $isTranslatable}
+        {call aui.message.info}
+            {param content}
+                // TODO: Better UX
+                {getText('admin.issuesettings.statuses.translate.statuses', '<a href="ViewTranslations!default.jspa?issueConstantType=status" id="view-translation">', '</a>')|noAutoescape}
+            {/param}
+        {/call}
+    {/if}
+
+    {call aui.table}
+        {param extraClasses}aui-table-rowhover{/param}
+        {param theadContent}
+            <tr>
+                <th>{getText('admin.issuesettings.statuses.status.details')}</th>
+                <th>{getText('admin.issuesettings.statuses.mode')}</th>
+                <th>{getText('admin.issuesettings.statuses.workflows')}</th>
+                <th>{getText('common.words.operations')}</th>
+            </tr>
+        {/param}
+        {param content}
+            {foreach $status in $statuses}
+                {call .statusRow}{param status: $status /}{/call}
+            {/foreach}
+        {/param}
+    {/call}
+
+    // Render a form to allow new statuses to be created.
+    {call .statusForm data="all"}{param isNew: true /}{/call}
+</body>
+</html>
+{/template}
+
+/**
+ * Render a row in the status table
+ * @param status {Status} the status to render
+ */
+{template .statusRow}
+    <tr>
+        <td>
+            {call JIRA.Template.Util.Issue.Status.issueStatusResolver}
+                {param issueStatus: $status /}
+                {param isSubtle: false /}
+                {param maxWidth: 'long' /}
+            {/call}
+            {if $status.description}
+                <p class="description">{$status.description}</p>
+            {/if}
+        </td>
+        // Mode column - is staus active?
+        <td>
+            {if $status.isActive}
+                {call .activeStatus /}
+            {else}
+                {call .inactiveStatus /}
+            {/if}
+        </td>
+        // Workflows column - display associated workflows
+        <td>
+            {if length($status.workflows) > 0}
+                <ul>
+                {foreach $workflow in $status.workflows}
+                    <li>
+                        <a href="ViewWorkflowSteps.jspa?workflowMode=live&amp;workflowName={$workflow|escapeUri}">{$workflow}</a>
+                    </li>
+                {/foreach}
+                </ul>
+            {else}
+                {sp}
+            {/if}
+        </td>
+        // Operations
+        <td>
+            <ul class="operations-list">
+                <li><a id="edit_{$status.id}" class="trigger-dialog" href="EditStatus!default.jspa?id={$status.id|escapeUri}">{getText('common.words.edit')}</a></li>
+                {if not $status.isActive}
+                    <li><a id="del_{$status.id}" class="trigger-dialog" href="DeleteStatus!default.jspa?id={$status.id|escapeUri}">{getText('common.words.delete')}</a></li>
+                {/if}
+            </ul>
+        </td>
+    </tr>
+{/template}
+
+/**
+ * Page for creating a new or editing an existing status.
+ * @param isNew {Boolean} set to false if the form is for an existing Status (one with an ID.
+ * @param? status {Status} the status the form is for
+ * @param? statusCategoryHelpData {HelpUtil.HelpPath} the data used for rendering help link.
+ * @param? statusCategoryOptions {List<Map<String,Object>>} the category of statuses available to assign to a status.
+ * @param? errors {Map<String,String>} errors for the add status fields, if any exist.
+ * @param? token XSRF security token
+ */
+{template .input}
+<html>
+<head>
+    <meta name="admin.active.section" content="admin_issues_menu/issue_attributes"/>
+    <meta name="admin.active.tab" content="statuses"/>
+    <title>{getText('admin.issuesettings.statuses.view.statuses')}</title>
+</head>
+<body>
+    {call .statusForm data="all" /}
+</body>
+</html>
+{/template}
+
+/**
+ * Form to create a new status.
+ * @param isNew {Boolean} set to false if the form is for an existing Status (one with an ID.
+ * @param isIconUrlFieldVisible {Boolean} whether iconUrl field should be visible or not.
+ * @param? status {Status} the status the form is for
+ * @param? statusCategoryHelpData {HelpUtil.HelpPath} the data used for rendering help link.
+ * @param? statusCategoryOptions {List<Map<String,Object>>} the category of statuses available to assign to a status.
+ * @param? errors {Map<String,String>} errors for the add status fields, if any exist.
+ * @param? token XSRF security token
+ */
+{template .statusForm}
+    {let $formName: ($isNew ? 'add' : 'edit') + '-status-form' /}
+    {if $isNew}
+        <h2>{getText('admin.issuesettings.statuses.add.new.status')}</h2>
+    {else}
+        <h2>{getText('admin.issuesettings.statuses.edit.status')}</h2>
+    {/if}
+    {call aui.form.form}
+        {param action: ($isNew ? 'Add' : 'Edit') + 'Status.jspa' /}
+        {param extraAttributes: [ 'name': $formName ] /}
+        {param content}
+        <div class="form-body">
+            {call aui.form.textField}
+                {param id: 'name' /}
+                {param isRequired: true /}
+                {param labelContent: getText('common.words.name') /}
+                {param value: ($status) ? $status.name : '' /}
+                {param errorTexts: ($errors and $errors.name) ? [$errors.name] : null /}
+            {/call}
+            {call aui.form.textareaField}
+                {param id: 'description' /}
+                {param labelContent: getText('common.words.description') /}
+                {param descriptionText: getText('admin.issuesettings.statuses.status.description.explanation') /}
+                {param value: ($status) ? $status.description : '' /}
+                {param errorTexts: ($errors and $errors.description) ? [$errors.description] : null /}
+            {/call}
+            {if length($statusCategoryOptions) > 0}
+                {call .statusCategorySelectField data="all" /}
+            {/if}
+            {if $isIconUrlFieldVisible}
+                {call .statusIconUrlField}
+                    {param iconUrl: ($status) ? $status.iconUrl : '' /}
+                    {param formName: $formName /}
+                    {param errorText: ($errors and $errors.iconurl) ? $errors.iconurl : null /}
+                {/call}
+            {/if}
+
+            {if (not $isNew) and $status}
+                <input type="hidden" name="id" value="{$status.id}"/>
+            {/if}
+            <input type="hidden" name="atl_token" value="{$token}"/>
+        </div>
+        <div class="form-footer">
+            {call aui.form.buttons}
+                {param content}
+                    {call aui.form.submit}
+                        {param id: ($isNew ? 'add' : 'update') + '_submit' /}
+                        {param name: $isNew ? 'Add' : 'Update' /}
+                        {param text: $isNew ? getText('common.forms.add') : getText('common.forms.update') /}
+                    {/call}
+                    {if not $isNew}
+                        <a href="ViewStatuses.jspa" class="cancel">{getText('common.words.cancel')}</a>
+                    {/if}
+                {/param}
+            {/call}
+        </div>
+        {/param}
+    {/call}
+{/template}
+
+/**
+ * Form field to output selector for a status category.
+ * @param? statusCategoryOptions {List<Map<String,Object>>} the category of statuses available to assign to a status.
+ * @param? errors
+ */
+{template .statusCategorySelectField}
+    {call JIRA.Templates.Fields.Pickers.Statuses.statusCategorySelectField data="all"}
+        {param id: 'statusCategory'/}
+    {/call}
+{/template}
+
+/**
+ * @param formName
+ * @param? iconUrl
+ * @param? errorText
+ */
+{template .statusIconUrlField}
+    <script language="JavaScript">
+        function openWindow() {lb}
+            var vWinUsers = window.open('{contextPath()}/secure/popups/IconPicker.jspa?fieldType=status&formName={$formName|escapeUri}','IconPicker', 'status=no,resizable=yes,top=100,left=200,width=580,height=650,scrollbars=yes');
+            vWinUsers.opener = self;
+            vWinUsers.focus();
+        {rb}
+    </script>
+    <div class="field-group">
+        {call aui.form.label}
+            {param forField : 'iconurl' /}
+            {param isRequired : true /}
+            {param content : getText('admin.common.phrases.icon.url') /}
+        {/call}
+        {call aui.form.input}
+            {param id: 'iconurl' /}
+            {param type: 'text' /}
+            {param value: $iconUrl /}
+        {/call}
+
+        {sp}[ <a href="#" class="subText" onclick="openWindow();return false;">{getText('admin.text.image.select.image')}</a> ]
+
+        {call aui.form.fieldDescription}
+            {param message : getText('admin.common.phrases.relative.to.jira') /}
+        {/call}
+
+        {if $errorText}
+            {call aui.form.fieldError}
+                {param message: $errorText /}
+            {/call}
+        {/if}
+    </div>
+{/template}
+
+/**
+ * Remove a status from the system.
+ * @param status
+ * @param token XSRF token
+ * @param? errorMessages
+ */
+{template .deleteConfirm}
+<html>
+<head>
+    <meta name="admin.active.section" content="admin_issues_menu/issue_attributes"/>
+    <meta name="admin.active.tab" content="statuses"/>
+    <title>{getText('admin.issuesettings.statuses.delete.title')}</title>
+</head>
+<body>
+    <h2>{getText('admin.issuesettings.statuses.delete.status', $status.name)}</h2>
+    {call aui.form.form}
+        {param action: 'DeleteStatus.jspa' /}
+        {param content}
+            <div class="form-body">
+                {if $errorMessages and length($errorMessages) > 0}
+                    {call aui.message.error}
+                        {param content}
+                            {foreach $error in $errorMessages}
+                                <p>{$error}</p>
+                            {/foreach}
+                        {/param}
+                    {/call}
+                {/if}
+                <p>{getText('admin.issuesettings.statuses.delete.confirmation')}</p>
+                <input type="hidden" name="id" value="{$status.id}"/>
+                <input type="hidden" name="confirm" value="true" />
+                <input type="hidden" name="atl_token" value="{$token}" />
+            </div>
+            <div class="form-footer">
+                {call aui.form.buttons}
+                    {param content}
+                        {call aui.form.submit}
+                            {param id: 'delete_submit' /}
+                            {param name: 'Delete' /}
+                            {param text: getText('common.words.delete') /}
+                        {/call}
+                        <a href="ViewStatuses.jspa" class="cancel">{getText('common.words.cancel')}</a>
+                    {/param}
+                {/call}
+            </div>
+        {/param}
+    {/call}
+</body>
+</html>
+{/template}
