@@ -1,24 +1,21 @@
-# docker-bind
-bind for docker
+# docker-jira
+jira 6.3.6 for docker
 
-### add ssh key
-copy configration server's id_rsa.pub to bind server /root/.ssh/authorized_keys 
-
-### bind reload configration signal
-
-```
-touch /etc/bind/signal.lock
-```
 
 ### use docker command
-docker run -it --name bind -v /xmisp/docker/bind/conf:/etc/bind:rw -v /root/.ssh:/root/.ssh -p 2222:22 -v /etc/ssh:/etc/ssh -p 53:53/udp -e INTERVAL=10s davinbao/bind
+docker run -it --name bind -v /xmisp/jira/data:/data:rw -p 80:8080 -p 8443:8443  192.168.189.47:5000/jira
+
+### configration
+/xmisp/server/jira/jira-6.3.6/atlassian-jira/WEB-INF/classes/jira-application.properties
+/xmisp/server/jira/jira-6.3.6/conf/server.xml
+/xmisp/jira/dbconfig.xml
 
 ### use docker compose
 
 version: '3.3'
 services:
   bind:
-    image: davinbao/bind:latest
+    image: 192.168.189.47:5000/jira:latest
     deploy:
       replicas: 1
       endpoint_mode: vip
@@ -26,13 +23,9 @@ services:
         limits:
           memory: 512M
     volumes:
-    - /xmisp/docker/bind/conf:/etc/bind:rw
-    - /root/.ssh:/root/.ssh:ro
-    - /etc/ssh:/etc/ssh:ro
+    - /xmisp/jira/data:/data:rw
     ports:
-    - 53:53/udp
-    - 2222:22
-    environment:
-      INTERVAL: 10s
+    - 80:8080
+    - 8443:8443
     networks:
       - backend
