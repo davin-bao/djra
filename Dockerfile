@@ -9,7 +9,7 @@ RUN set -x \
 COPY jira-6.3.6 /usr/local/jira
 COPY *.sh /
 
-ENV JIRA_HOME=/usr/local/jira
+ENV JIRA_HOME=/data
 
 VOLUME ["/data"]
 EXPOSE 8080 8443
