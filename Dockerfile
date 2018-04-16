@@ -3,7 +3,7 @@ FROM java:8-jdk-alpine
 MAINTAINER Davin Bao <davin.bao@gmail.com>
 
 RUN set -x \
-    && apk add --update bash \
+    && apk add --update bash curl ttf-dejavu \
     && cp /bin/bash /
 
 COPY jira-6.3.6 /usr/local/jira
